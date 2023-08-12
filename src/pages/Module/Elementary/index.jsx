@@ -5,181 +5,105 @@ import {Modal,Button,Row,Col} from 'react-bootstrap'
 
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import duplicateArray from 'remove-array-duplicates'
-
+import data_files from '../Reader/flattened_data.json'
+import { Folder } from "./folder";
 
 
 export const ElementaryLearning = () =>{
 
-    const [showModal,SetshowModal] = useState(false);
     
-    const [GradeLevel,SetGradeLevel] = useState(["Kinder-Nursery","Grade 1","Grade 2","Grade 3","Grade 4","Grade 5","Grade 6"])
-
-    const [Subjects,SetSubjects] = useState(['AP','English','Filipino','MAPEH','Mathematics','Science','TLE','Values'])
-    const [Quarter,SetQuarter] = useState(['Quarter 1','Quarter 2','Quarter 3','Quarter 4'])
-    const [Weeks,SetWeeks] = useState([])
-
-
     const [CurrentCategory, SetCurrentCategory] = useState('Kinder-Nursery');
-    const [SelectedSubject,SetSelectedSubject] = useState('')
-    const [SelectedQuarter,SetSelectedQuarter] = useState('')
-    const [SelectedWeek,SetSelectedWeek] = useState('');
+    const [GradeLevel] = useState(["Kinder-Nursery","Grade 1","Grade 2","Grade 3","Grade 4","Grade 5","Grade 6"])
+    const [SelectedPath,SetSelectedPath] = useState([])
 
-
-    const [FilePath, SetFilePath]= useState(FilesElementary)
-    const [FinalPath,SetFinalPath] = useState([]);
-
-    const [StartSearch,SetStartSearch] = useState(false);
-
-
-    const [GetSubject,SetGetSubject] = useState(true);
-    const [GetQuarter,SetGetQuarter] = useState(true);
-    const [GetWeeks,SetGetWeeks] = useState(true);
+    const [RenderFile,SetRenderFile] = useState([])
 
     
-    useEffect(()=>{
-        if(StartSearch){
-            let finalPath = []
-            for(var item in FilePath){
-                if(FilePath[item].includes(SelectedWeek)){
-                    finalPath.push(FilePath[item])
-                }
-            }
-            SetFinalPath(finalPath)
-            SetStartSearch(false)
+    const [FullPathSelected,SetFullPathSelected] = useState("")
+    const [showPDF,setshowPDF] = useState(false)
 
-            if(finalPath.length !== 0 ){
-                SetshowModal(true)
-            }else{
-                toast("No files found!")
+    const HandlePathNavigator = (path)=>{
+
+        console.log(SelectedPath)
+
+        if(SelectedPath.length >= 1 && GradeLevel.includes(path)){
+
+            SetSelectedPath([path])
+            let keyword = path
+
+            let files = [...data_files].filter((data) => {
+                return data.includes(keyword+"/");
+            }).map((filteredData) => {
+                let file_selected = filteredData.split('/')[ 5]
+                return file_selected;
+            });
+
+            let unique_folders = [...new Set(files)]
+            SetRenderFile(unique_folders)
+
+        }else{
+            if(!SelectedPath.includes(path) && !path.includes(".pdf")){
+                SetSelectedPath([
+                    ...SelectedPath,
+                    path
+                ])
+                let keyword = SelectedPath.toString().replace(/,/g,"/") + "/" + path
+    
+                let files = [...data_files].filter((data) => {
+                    return data.includes(keyword+"/");
+                }).map((filteredData) => {
+                    let file_selected = filteredData.split('/')[ 5 + SelectedPath.length]
+                    return file_selected;
+                });
+    
+                let unique_folders = [...new Set(files)]
+                SetRenderFile(unique_folders)
+    
+            }else if(SelectedPath.includes(path) && !path.includes(".pdf")){
+                SetSelectedPath([path])
+    
+                let files = [...data_files].filter((data) => {
+                    return data.includes(path+"/");
+                }).map((filteredData) => {
+                    
+                    return filteredData.split('/')[5];
+                });
+    
+                let unique_folders = [...new Set(files)]
+                SetRenderFile(unique_folders)
+            }else if(path.includes(".pdf")){
+    
+                let keyword = SelectedPath.toString().replace(/,/g,"/") + "/" + path
+                let full_path = ""
+    
+                for(var item in data_files){
+                    if(data_files[item].includes(keyword)){
+                        full_path = data_files[item]
+                    }
+                }
+    
+                console.log("full===>",keyword)
+                SetFullPathSelected(full_path)
+                setshowPDF(true)
             }
         }
-        if(GetSubject){
-            for(item in FilesElementary){
-                if(FilesElementary[item].includes("/") && FilesElementary[item].includes(CurrentCategory)){
-                    function reverseString(str) {
-                        var newString = "";
-                        for (var i = str.length - 1; i >= 0; i--) {
-                            newString += str[i];
-                        }
-                        return newString;
-                    }
-                    reverseString(FilesElementary[item]);
-                }
-            }
-            SetGetSubject(false);
-        }
-        if(GetQuarter){
-            let QuarterFilter = [];
-            for(let item in FilesElementary){
-                if(FilesElementary[item].includes(CurrentCategory)){
 
-                    if(!QuarterFilter.includes(CurrentCategory)){
-                        QuarterFilter.push(FilesElementary[item])
-                    }
-                }
-            }
-            
-            let Quartersss = ['Quarter 1','Quarter 2','Quarter 3','Quarter 4']
-            let FinalResQuarter = []
-            let FinalResPath = []
-            
-            for(let item2 in QuarterFilter){
-                for(let item3 in Quartersss){
-                    if(QuarterFilter[item2].toLocaleLowerCase().includes(Quartersss[item3].toLocaleLowerCase())){
-                        FinalResQuarter.push(Quartersss[item3])
-                        FinalResPath.push(QuarterFilter[item2])
-                    }
-                }
-            }
-            const RemoveDuplicateInArray = (FinalResQuarter, type) => {
-                if(type === "quarter"){
-                    let CleanArray = [];
-                    for(var item in FinalResQuarter){
-                        if(!CleanArray.includes(FinalResQuarter[item])){
-                            CleanArray.push(FinalResQuarter[item])
-                        }
-                    }
-                    return CleanArray
-                }
-                if(type === "path"){
-                    let CleanArray = [];
-                    for(var item in FinalResQuarter){
-                        if(!CleanArray.includes(FinalResQuarter[item])){
-                            CleanArray.push(FinalResQuarter[item])
-                        }
-                    }
-                    return CleanArray
-                }
-                
-            }
-
-            SetQuarter(RemoveDuplicateInArray(FinalResQuarter,"quarter"))
-            SetFilePath(RemoveDuplicateInArray(FinalResPath,"path"))
-            SetGetQuarter(false)
-        }
-        if(GetWeeks){
-            let Paths = []
-            let Weeks = []
-            for(var item in FilePath){
-                if(FilePath[item].toLocaleLowerCase().includes(SelectedQuarter.toLocaleLowerCase())){
-                    Paths.push(FilePath[item])
-                    Weeks.push(FilePath[item].split("/")[5])
-                }
-            }
-            //console.log("Paths===>",Paths)
-            let UniqueWeeks = []
-            for(var item in Weeks){
-                if(!UniqueWeeks.includes(Weeks[item])){
-                    UniqueWeeks.push(Weeks[item])
-                }
-            }
-            //console.log("UniqueWeeks===>",UniqueWeeks)
-            SetWeeks(UniqueWeeks)
-            SetGetWeeks(false)
-        }
-    },[StartSearch,GetSubject,GetQuarter,GetWeeks])
-
-
-
-    const [ViewPDF,SetViewPDF] = useState(false)
-    const [FileSelected,SetFileSelected] = useState(false)
-
-    const SetSelectedFile = (path) => {
-        // console.log(process.env.live_url)
-        // console.log(path)
-        if(path !== ""){
-            SetFileSelected(path)
-            SetViewPDF(true)
-            SetshowModal(false);
-        }
     }
 
-    const [files, setFiles] = useState([]);
-
     useEffect(()=>{
-        const readDirectory = async (directoryPath) => {
-            try {
-                alert(directoryPath)
-              const response = await fetch(directoryPath);
-              const data = await response.json();
-              setFiles(data.files);
-              console.log("files--->",data.files)
-            } catch (error) {
-              console.error('Error reading directory:', error);
-            }
-          };
-        
-          const handleReadDirectory = () => {
-            const directoryPath = 'http://localhost:3000/assets'; // Replace with your API endpoint
-            readDirectory(directoryPath);
-          };
-          handleReadDirectory()
-    },[])
+        SetSelectedPath([CurrentCategory])
+        let keyword = CurrentCategory
 
-    // if(files){
-    //     console.log("files--->",LiveUrl+FileSelected)
-    // }
+        let files = [...data_files].filter((data) => {
+            return data.includes(keyword+"/");
+        }).map((filteredData) => {
+            let file_selected = filteredData.split('/')[ 5]
+            return file_selected;
+        });
+
+        let unique_folders = [...new Set(files)]
+        SetRenderFile(unique_folders)
+    },[])
 
 
     return (
@@ -222,11 +146,7 @@ export const ElementaryLearning = () =>{
                                         <a className={"btn btn-md btn-primary-outline display-7  " + (CurrentCategory === data ? "active" : "")}  
                                         onClick={(e)=>{
                                             SetCurrentCategory(data)
-                                            SetSelectedSubject('')
-                                            SetSelectedQuarter('')
-                                            SetGetSubject(true)
-                                            SetGetQuarter(true)
-                                            SetGetWeeks(true)
+                                            HandlePathNavigator(data)
                                         }}>{data}</a>
                                     </li>
                                 )
@@ -236,106 +156,32 @@ export const ElementaryLearning = () =>{
                     {/* Gallery */}
                     <div className="mbr-gallery-row">
                         <div className="mbr-gallery-layout-default">
-                        <div>
                             <div>
-                                {
-                                    SelectedQuarter === "" ?
-                                        Quarter.map((data,index)=>{
-                                            return (
-                                            <>
-                                                <div className="mbr-gallery-item mbr-gallery-item--p2" 
-                                                    data-video-url="false" 
-                                                    data-tags="Grade 7" 
-                                                    key={index} 
-                                                    onClick={(e)=>{
-                                                            SetSelectedQuarter(data)
-                                                            SetGetWeeks(true);
-                                                            }
-                                                        }>
-                                                    <div>
-                                                        <img src="assets/images/isala/folder-icon.png" alt="" />
-                                                        <h6>{data}</h6>
-                                                    </div>
-                                                </div>
-                                            </>)
-                                        })
-                                : 
-                                    Weeks.map((data,index)=>{
-                                        return (
-                                        <>
-                                            <div className="mbr-gallery-item mbr-gallery-item--p2" 
-                                                data-video-url="false" 
-                                                data-tags="Grade 7" 
-                                                key={index} 
-                                                onClick={(e)=>{
-                                                        SetSelectedWeek(data)
-                                                        SetStartSearch(true)
-                                                    }}>
-                                                <div>
-                                                    <img src="assets/images/isala/folder-icon.png" alt="" />
-                                                    <h6>{data}</h6>
-                                                </div>
-                                            </div>
-                                        </>)
-                                    })
-                                }
-                               
-                            
+                                    <Folder 
+                                        RenderFile={RenderFile} 
+                                        HandlePathNavigator={HandlePathNavigator} 
+                                    />
+
+                                    <Modal 
+                                        show={showPDF} 
+                                        onHide={()=>{setshowPDF(false)}}
+                                        size="lg"
+                                        aria-labelledby="contained-modal-title-vcenter"
+                                        centered
+                                        >    
+                                            <iframe src={"http://localhost:3000/"+FullPathSelected} width="100%" height="850px"></iframe>
+                                            
+                                        <Button variant="success" onClick={()=>{setshowPDF(false)}}>
+                                            Close PDF
+                                        </Button>
+                                    </Modal>
                             </div>
-                        </div>
                         <div className="clearfix" />
                         </div>
                     </div>
                     </div>
                 </div>
             </section>
-
-
-            <Modal 
-                show={showModal} 
-                onHide={()=>{SetshowModal(false)}}
-                size="lg"
-                aria-labelledby="contained-modal-title-vcenter"
-                centered
-                >
-                <Modal.Header closeButton>
-                    <Modal.Title>Files Found!</Modal.Title>
-                </Modal.Header>
-
-                    <Modal.Body style={{ overflow:"scroll"}}>
-                        {FinalPath.map((data,index)=>{
-                            return (
-                               <>
-                                    <Button variant="light" onClick={()=>{SetSelectedFile(data)}}>
-                                        {data.split("/")[6]}
-                                    </Button>
-                                    <br/>
-                               </>
-                            )
-                        })}
-                    </Modal.Body>
-
-                <Button variant="primary" onClick={()=>{SetshowModal(false)}}>
-                    Close
-                </Button>
-            </Modal>
-          
-            <Modal 
-                show={ViewPDF} 
-                onHide={()=>{SetViewPDF(false)}}
-                size="lg"
-                aria-labelledby="contained-modal-title-vcenter"
-                centered
-                >
-                        
-                        <iframe src={LiveUrl+FileSelected} width="100%" height="850px"></iframe>
-                    
-                <Button variant="success" onClick={()=>{SetViewPDF(false)}}>
-                    Close PDF
-                </Button>
-            </Modal>
-
-
               
         <ToastContainer />
         </>
