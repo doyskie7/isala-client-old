@@ -8,6 +8,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import duplicateArray from 'remove-array-duplicates'
 
 
+
 export const ElementaryLearning = () =>{
 
     const [showModal,SetshowModal] = useState(false);
@@ -64,7 +65,6 @@ export const ElementaryLearning = () =>{
                         return newString;
                     }
                     reverseString(FilesElementary[item]);
-                    //console.log(reverseString(reverseString(FilesElementary[item]).split("/")[0]).replace(".pdf",""))
                 }
             }
             SetGetSubject(false);
@@ -127,14 +127,14 @@ export const ElementaryLearning = () =>{
                     Weeks.push(FilePath[item].split("/")[5])
                 }
             }
-            console.log("Paths===>",Paths)
+            //console.log("Paths===>",Paths)
             let UniqueWeeks = []
             for(var item in Weeks){
                 if(!UniqueWeeks.includes(Weeks[item])){
                     UniqueWeeks.push(Weeks[item])
                 }
             }
-            console.log("UniqueWeeks===>",UniqueWeeks)
+            //console.log("UniqueWeeks===>",UniqueWeeks)
             SetWeeks(UniqueWeeks)
             SetGetWeeks(false)
         }
@@ -146,14 +146,40 @@ export const ElementaryLearning = () =>{
     const [FileSelected,SetFileSelected] = useState(false)
 
     const SetSelectedFile = (path) => {
-        console.log(process.env.live_url)
-        console.log(path)
+        // console.log(process.env.live_url)
+        // console.log(path)
         if(path !== ""){
             SetFileSelected(path)
             SetViewPDF(true)
             SetshowModal(false);
         }
     }
+
+    const [files, setFiles] = useState([]);
+
+    useEffect(()=>{
+        const readDirectory = async (directoryPath) => {
+            try {
+                alert(directoryPath)
+              const response = await fetch(directoryPath);
+              const data = await response.json();
+              setFiles(data.files);
+              console.log("files--->",data.files)
+            } catch (error) {
+              console.error('Error reading directory:', error);
+            }
+          };
+        
+          const handleReadDirectory = () => {
+            const directoryPath = 'http://localhost:3000/assets'; // Replace with your API endpoint
+            readDirectory(directoryPath);
+          };
+          handleReadDirectory()
+    },[])
+
+    // if(files){
+    //     console.log("files--->",LiveUrl+FileSelected)
+    // }
 
 
     return (
